@@ -150,7 +150,9 @@ Figure 2.3: This figure depicts the difference in damages over time from the pul
 The SCC is the present discounted value of the stream of future damages caused by one additional ton of CO2. The Obama Administration used a discount rate of 3% to discount damages. Recently, New York State used a discount rate of 2%. Calculate and make a plot of the SCC (y-axis) against the discount rate (x-axis) for a reasonable range of discount rates. Explain the intuition for how the discount rate affects the SCC. 
 
 ```{r}
+
 baseline_year <- 2022
+
 warming_damages_scc <- warming_damages %>%
   select(year, damages_difference_co2) %>%
   mutate(pv_0 = damages_difference_co2*((1+0.0)^(-(year-baseline_year)))) %>%
@@ -159,27 +161,23 @@ warming_damages_scc <- warming_damages %>%
   mutate(pv_3 = damages_difference_co2*((1+0.03)^(-(year-baseline_year)))) %>%
   mutate(pv_4 = damages_difference_co2*((1+0.04)^(-(year-baseline_year)))) %>%
   mutate(pv_5 = damages_difference_co2*((1+0.05)^(-(year-baseline_year)))) %>%
-  mutate(pv_6 = damages_difference_co2*((1+0.06)^(-(year-baseline_year)))) %>%
-  mutate(pv_7 = damages_difference_co2*((1+0.07)^(-(year-baseline_year)))) %>%
-  mutate(pv_8 = damages_difference_co2*((1+0.08)^(-(year-baseline_year)))) %>%
-  mutate(pv_9 = damages_difference_co2*((1+0.09)^(-(year-baseline_year)))) %>%
-  mutate(pv_10 = damages_difference_co2*((1+0.1)^(-(year-baseline_year))))
-disc_rates <- c(0,1,2,3,4,5,6,7,8,9,10)
+  mutate(pv_6 = damages_difference_co2*((1+0.06)^(-(year-baseline_year))))
+
+discount_rates <- c(0,1,2,3,4,5,6)
+
 scc_calc <- c(sum(warming_damages_scc$pv_0),sum(warming_damages_scc$pv_1),
                        sum(warming_damages_scc$pv_2),sum(warming_damages_scc$pv_3),
                        sum(warming_damages_scc$pv_4),sum(warming_damages_scc$pv_5),
-                       sum(warming_damages_scc$pv_6),sum(warming_damages_scc$pv_7),
-                       sum(warming_damages_scc$pv_8),sum(warming_damages_scc$pv_9),
-                       sum(warming_damages_scc$pv_10))
-scc_df <- data.frame(disc_rates,
+                       sum(warming_damages_scc$pv_6))
+              
+scc_df <- data.frame(discount_rates,
                      scc_calc)
-ggplot(data = scc_df, aes(x = disc_rates, y = scc_calc)) +
+
+ggplot(data = scc_df, aes(x = discount_rates, y = scc_calc)) +
   geom_point(color = "black") +
   theme_minimal() +
-  labs(x = "Discount Rate (%)", y = "Social Cost of Carbon ($/ton of CO2)") +
-  geom_vline(xintercept=2.1, color = 'light blue') +
-  geom_label(aes(x=2.1, label="Ramsey Rule: SCC = $71.35", y=90), colour="light blue", angle=90) +
-  geom_point(aes(x = 2.1, y = 71.35), color = "light blue", size = 2.5)
+  labs(x = "Discount Rate (%)", y = "Social Cost of Carbon ($/ton of CO2)")
+
 # scc_function <- function(discount_rate){
 #   warming_damages_scc %>%
 #     mutate(pv = damages_difference_co2/((1+discount_rate)^(-(year-baseline_year))))
@@ -188,7 +186,18 @@ ggplot(data = scc_df, aes(x = disc_rates, y = scc_calc)) +
 # }
 ```
 
-Figure 3. The above plot shows the social cost of carbon in dollars per ton of CO2 emitted for discount rates ranging from 1% to 10%. As discount rate increases, the social cost of carbon decreases. This is expected because a higher discount rate indicates that we value our money more today, or in other words, that we value our money in the future less. This results on us placing a lower value on the social cost of carbon because the future effects are less of a concern. 
+
+
+```{r}
+ggplot(data = scc_df, aes(x = discount_rates, y = scc_calc)) +
+  geom_point(color = "black") +
+  theme_minimal() +
+  labs(x = "Discount Rate (%)", y = "Social Cost of Carbon ($/ton of CO2)") +
+  geom_label(aes(x=3, label="Ramsey Rule: Social Cost of Carbon = $71.35", y=85), color="coral") +
+  geom_point(aes(x = 2.1, y = 71.35), color = "coral", size = 3)
+```
+
+Figure 3. The figure above depicts the social cost of carbon ($) per ton of C02 emissions at discount rates from 0-6%. As discount rate increases, the social cost of carbon decreases. This is expected because a higher discount rate indicates that we value our money more today, or in other words, that we value our money in the future less. This results on us placing a lower value on the social cost of carbon because the future effects are less of a concern. 
 
 # Ramsey Rule for SCC
 
