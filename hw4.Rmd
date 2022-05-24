@@ -110,17 +110,21 @@ ggplot(data = warming_damages, aes(x = year, y = damages_baseline)) +
   geom_line(color = "darkseagreen2", size = 1.5) +
   theme_bw() +
   labs(x = "Year", y = "Baseline Scenario Damages (Cost in $)")
+
 ```
+
 Figure 2.0: This figure depicts changes in damages and warming over time without the pulse input.
 
-```{e}
+```{r}
 
 # Scenario 2: damages over time w/ pulse
 ggplot(data = warming_damages, aes(x = year, y = damages_pulse)) +
   geom_line(color = "coral", size = 1.5) +
   theme_bw() +
   labs(x = "Year", y = "Pulse Scenario Damages (Cost in $)")
+
 ```
+
 Figure 2.1: This figure depicts damages from warming over time with the inclusion of the pulse input.
 
 ```{r}
@@ -130,7 +134,9 @@ ggplot(data = warming_damages, aes(x = year, y = damages_difference)) +
   geom_line(color = "deeppink3", size = 1.5) +
   theme_bw() +
   labs(x = "Year", y = "Difference in Damages Arising from Pulse (Cost in $)")
+
 ```
+
 Figure 2.2: This figure depicts the difference in damages arising from the inclusion of the pulse input.
 
 ```{r}
@@ -142,6 +148,7 @@ ggplot(data = warming_damages, aes(x = year, y = damages_difference_co2)) +
   labs(x = "Year", y = "Difference in Damages/Ton of CO2 (Cost in $)")
 
 ```
+
 Figure 2.3: This figure depicts the difference in damages over time from the pulse/ton of C02, assuming that each ton of the pulse results in an equal amount of damage.
 
 
@@ -199,7 +206,10 @@ ggplot(data = scc_df, aes(x = discount_rates, y = scc_calc)) +
 
 Figure 3. The figure above depicts the social cost of carbon ($) per ton of C02 emissions at discount rates from 0-6%. As discount rate increases, the social cost of carbon decreases. This is expected because a higher discount rate indicates that we value our money more today, or in other words, that we value our money in the future less. This results on us placing a lower value on the social cost of carbon because the future effects are less of a concern. 
 
-# Ramsey Rule for SCC
+# Question 4
+
+The National Academies of Sciences, Engineering, and Medicine advised the government in a 2017 report to use the Ramsey Rule when discounting within the SCC calculation: r = ρ + ηg Using ρ = 0.001, η = 2, and g = 0.01, what is the SCC? Locate this point on your graph from above. 
+
 
 ```{r}
 #Use the ramsey rule to calculate the discount rate for SCC
@@ -212,7 +222,15 @@ scc_ramsey <- sum(warming_damages_ramsey$pv_ramsey)
 
 When using the Ramsey Rule, the discount rate we should use to calculate the SCC would be r discount_rate_ramsey%, and the resulting SCC would be r round(scc_ramsey, 2) dollars. This point is marked on the plot above where the blue vertical line intercepts the curve.
 
-# Policy Analysis
+
+# Question 5
+
+Now suppose there are two possible climate policies that can be pursued. Policy A is business as usual and Policy B is to take immediate and strong action on climate change. Use these facts 
+-If you undertake Policy A there are two possible outcomes. Either warming will occur as in the “baseline” (i.e. “no-pulse”) dataset above (this happens with probability 0.5) or warming each year will be 1.5 times that in the “baseline” dataset (with probability 0.5).
+-Under Policy B, warming will continue until 2050 as in the “baseline” dataset, and then will stabilize at 1.29 degrees and stay that way forever. 
+-Society is risk neutral 
+-Use a discount rate of 2% 
+
 
 ```{r}
 discount_rate_policy <- 0.02
@@ -241,11 +259,11 @@ p_b <- 1.0
 ev_b <- sum(warming_damages_policy_b$pv_b)*p_b #expected present value of damages up to 2100 policy B in dollars
 ```
 
-Policy A: Business as Usual
+### Policy A: Business as Usual
 
 The expected present value of damages up to 2100 of policy A is r round(ev_a,0)` dollars.
 
-Policy B: Take Immediate Action on Climate Change
+### Policy B: Take Immediate Action on Climate Change
 
 The expected present value of damages up to 2100 of policy B is r round(ev_b,0)` dollars.
 
@@ -279,6 +297,8 @@ Figure 4. The above plot shows the expected value of policies A and B as a funct
 
 The two policies have the same total expected value when the initial cost of Policy B is r round(equal_cost,0)` dollars. Therefore, if Policy B costs less than this amount, Congress should undertake Policy B, and if Policy B costs more than this amount, Congress should undertake Policy A (assuming that cost is their only consideration).
 
-# Risk Averse Society
+# Question 6 
+
+Now suppose that society is risk averse. How do you think this would change your advice to Congress? 
 
 If society is risk averse, they are less likely to want to take the risk that Policy A results in the lower cost scenario, or in other words, they are more likely to prefer Policy B because it has guaranteed lower future damages than the high cost outcome from Policy A. Therefore, if we determined that society is risk averse, I would advise Congress to model society's utility function from given monetary costs, then plug in the estimated costs of policies A and B into the utility function, and then recalculate the expected costs (or damages) of each policy using these new expected utility values. After this, they should determine the cost of Policy B, add it to the expected costs (or damages) of Policy B and then determine which policy has the lowest expected costs (or damages) and choose that policy. 
