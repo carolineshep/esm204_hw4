@@ -4,8 +4,8 @@ author: "Caroline Shepherd"
 date: "5/23/2022"
 output: 
   html_document:
-    code_folding: hide
-    theme: yeti
+    theme: cerulean
+    highlight: monochrome
     toc: yes
     toc_depth: 5
     toc_float: yes
