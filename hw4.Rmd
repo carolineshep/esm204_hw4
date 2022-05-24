@@ -11,7 +11,7 @@ output:
     toc_float: yes
     collapsed: yes
     smooth_scroll: yes
-    number_sections: yes
+    number_sections: no
 editor_options:
   chunk_output_type: console
 ---
@@ -24,9 +24,9 @@ knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(here)
 library(janitor)
-library(patchwork)
-library(cowplot)
 library(equatiomatic)
+library(cowplot)
+library(patchwork)
 
 ```
 
@@ -47,7 +47,9 @@ warming <- read_csv(here("warming.csv")) %>%
 
 The first, “damages.csv” provides new model estimates of the annual total damages from climate change at different levels of warming (in degrees C). The second dataset, “warming.csv” contains estimates of a baseline future climate trajectory (in degrees C) until 2100, and a second trajectory that adds a one-time pulse of CO2 today to the atmosphere. The pulse is 35 billion tons of carbon, which is roughly equal to annual global emissions. You can think of this as a “small” one-time pulse in carbon emissions.1 
 
-# 1. Using damages.csv, estimate a quadratic damage function relating the dollar value of damages to the change in global mean temperature. Estimate a model with a zero intercept because damages by construction must equal zero when there is no climate change. Plot your estimated damage function, overlaid with a scatterplot of the underlying data. 
+# Question 1
+
+Using damages.csv, estimate a quadratic damage function relating the dollar value of damages to the change in global mean temperature. Estimate a model with a zero intercept because damages by construction must equal zero when there is no climate change. Plot your estimated damage function, overlaid with a scatterplot of the underlying data. 
 
 ```{r}
 
@@ -63,7 +65,7 @@ summary(damages_lm)
 
 # Estimated demand function created from linear regression model
 damages_lm_funct <- function(x){
-  damages_quad_model$coefficients[1]*x+damages_quad_model$coefficients[2]*x^2
+  damages_lm$coefficients[1]*x+damages_lm$coefficients[2]*x^2
 }
 
 # Quadratic equation:
@@ -80,40 +82,52 @@ ggplot(data = damages, aes(x = warming, y = damages)) +
 
 ```
 
-# 2. Use warming.csv and your estimated damage function to predict damages in each year under the baseline climate and the pulse scenario. Make four plots: 
+# Question 2
+
+Use warming.csv and your estimated damage function to predict damages in each year under the baseline climate and the pulse scenario. Make four plots: 
 (1) damages over time without the pulse, 
 (2) damages over time with the pulse, 
 (3) the difference in damages over time that arises from the pulse, and 
 (4) the difference in damages over time from the pulse per ton of CO2 (you can assume that each ton of the pulse causes the same amount of damage). 
 
 ```{r}
+
+# Create new columns using lm model to depict each scenario from question 2
 warming_damages <- warming %>%
-  mutate(damages_baseline = damages_quad_function(warming_baseline)) %>%
-  mutate(damages_pulse = damages_quad_function(warming_pulse)) %>%
-  mutate(damages_difference = damages_pulse - damages_baseline) %>%
-  mutate(damages_difference_co2 = damages_difference/pulse)
+  mutate(damages_baseline = damages_lm_funct(warming_baseline)) %>% # 1) changes over time w/o pulse
+  mutate(damages_pulse = damages_lm_funct(warming_pulse)) %>% # 2) damages over time w/ pulse
+  mutate(damages_difference = damages_pulse - damages_baseline) %>% # 3) diff in damages arising from pulse
+  mutate(damages_difference_co2 = damages_difference/pulse) # 4) diff in damages over time w/ pulse/ton C02
+
+
+# Plot all scenarios
 plot_damages_no_pulse <- ggplot(data = warming_damages, aes(x = year, y = damages_baseline)) +
-  geom_line(color = "purple") +
-  theme_minimal() +
+  geom_line(color = "darkseagreen2", size = 1.5) +
+  theme_bw() +
   labs(x = "Year", y = "Baseline Scenario Damages ($)")
+
 plot_damages_pulse <- ggplot(data = warming_damages, aes(x = year, y = damages_pulse)) +
-  geom_line(color = "green") +
-  theme_minimal() +
+  geom_line(color = "coral", size = 1.5) +
+  theme_bw() +
   labs(x = "Year", y = "Pulse Scenario Damages ($)")
+
 plot_damages_difference <- ggplot(data = warming_damages, aes(x = year, y = damages_difference)) +
-  geom_line(color = "blue") +
-  theme_minimal() +
+  geom_line(color = "deeppink3", size = 1.5) +
+  theme_bw() +
   labs(x = "Year", y = "Difference in Damages ($)")
+
 plot_damages_difference_co2 <- ggplot(data = warming_damages, aes(x = year, y = damages_difference_co2)) +
-  geom_line(color = "orange") +
-  theme_minimal() +
+  geom_line(color = "cadetblue4", size = 1.5) +
+  theme_bw() +
   labs(x = "Year", y = "Difference in Damages Per Ton of CO2 ($)")
+
 (plot_damages_no_pulse+plot_damages_pulse)/(plot_damages_difference+plot_damages_difference_co2)
 ```
+need figure captions
 
-Figure 2. The above plots represent the damages caused by CO2 emissions each year under two scenarios. The top left shows the damages that result each year under the baseline scenario of warming. The top right shows the damages that result each year under the pulse scenario of warming. The bottom left shows the difference in damages between the two scenarios. The bottom right shows the difference in damages that results between the two scenarios per ton of additional CO2 emitted from the pulse. 
+# Question 3
 
-# Social cost of carbon
+The SCC is the present discounted value of the stream of future damages caused by one additional ton of CO2. The Obama Administration used a discount rate of 3% to discount damages. Recently, New York State used a discount rate of 2%. Calculate and make a plot of the SCC (y-axis) against the discount rate (x-axis) for a reasonable range of discount rates. Explain the intuition for how the discount rate affects the SCC. 
 
 ```{r}
 baseline_year <- 2022
@@ -167,7 +181,7 @@ warming_damages_ramsey <- warming_damages %>%
 scc_ramsey <- sum(warming_damages_ramsey$pv_ramsey)
 ```
 
-When using the Ramsey Rule, the discount rate we should use to calculate the SCC would be `r discount_rate_ramsey`%, and the resulting SCC would be `r round(scc_ramsey, 2)` dollars. This point is marked on the plot above where the blue vertical line intercepts the curve.
+When using the Ramsey Rule, the discount rate we should use to calculate the SCC would be r discount_rate_ramsey%, and the resulting SCC would be r round(scc_ramsey, 2) dollars. This point is marked on the plot above where the blue vertical line intercepts the curve.
 
 # Policy Analysis
 
@@ -177,7 +191,7 @@ discount_rate_policy <- 0.02
 #Policy A
 warming_damages_policy_a <- warming_damages %>%
   select(year, warming_baseline, damages_baseline) %>%
-  mutate(damages_2 = damages_quad_function(1.5*warming_baseline)) %>%
+  mutate(damages_2 = damages_lm_funct(1.5*warming_baseline)) %>%
   mutate(pv_baseline = damages_baseline*(1+discount_rate_policy)^(-(year-baseline_year))) %>%
   mutate(pv_2 = damages_2*(1+discount_rate_policy)^(-(year-baseline_year)))
 p_a_1 <- 0.5
@@ -192,7 +206,7 @@ for (i in 30:79){
   warming_damages_policy_b$warming_baseline[i]=1.29
 }
 warming_damages_policy_b <- warming_damages_policy_b %>%
-  mutate(damages_b = damages_quad_function(warming_baseline)) %>%
+  mutate(damages_b = damages_lm_funct(warming_baseline)) %>%
   mutate(pv_b = damages_b*(1+discount_rate_policy)^(-(year-baseline_year)))
 p_b <- 1.0
 ev_b <- sum(warming_damages_policy_b$pv_b)*p_b #expected present value of damages up to 2100 policy B in dollars
@@ -200,11 +214,11 @@ ev_b <- sum(warming_damages_policy_b$pv_b)*p_b #expected present value of damage
 
 Policy A: Business as Usual
 
-The expected present value of damages up to 2100 of policy A is `r round(ev_a,0)` dollars.
+The expected present value of damages up to 2100 of policy A is r round(ev_a,0)` dollars.
 
 Policy B: Take Immediate Action on Climate Change
 
-The expected present value of damages up to 2100 of policy B is `r round(ev_b,0)` dollars.
+The expected present value of damages up to 2100 of policy B is r round(ev_b,0)` dollars.
 
 ```{r}
 policy_a_cost <- function(x){ev_a}
@@ -234,7 +248,7 @@ equal_cost <- uniroot(dif_costs_fun, c(1e15,2.5e15))$root
 
 Figure 4. The above plot shows the expected value of policies A and B as a function of the initial cost of implementing Policy B (Policy A has no initial costs). 
 
-The two policies have the same total expected value when the initial cost of Policy B is `r round(equal_cost,0)` dollars. Therefore, if Policy B costs less than this amount, Congress should undertake Policy B, and if Policy B costs more than this amount, Congress should undertake Policy A (assuming that cost is their only consideration).
+The two policies have the same total expected value when the initial cost of Policy B is r round(equal_cost,0)` dollars. Therefore, if Policy B costs less than this amount, Congress should undertake Policy B, and if Policy B costs more than this amount, Congress should undertake Policy A (assuming that cost is their only consideration).
 
 # Risk Averse Society
 
