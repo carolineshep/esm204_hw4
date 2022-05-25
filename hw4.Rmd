@@ -56,7 +56,7 @@ Using damages.csv, estimate a quadratic damage function relating the dollar valu
 # Pulse = 35 billion tons of carbon 
 pulse <- 35000000000
 
-# Derive a quadratic equation by making a new column with warming squared
+# Making a new column with warming squared to derive quadratic equation later
 damages$warming2 <- damages$warming^2
 
 # Create a linear regression model of original warming and the squared warming data
@@ -306,4 +306,3 @@ The two policies have the same total expected value when the initial cost of Pol
 
 Now suppose that society is risk averse. How do you think this would change your advice to Congress? 
 
-If society is risk averse, they are less likely to want to take the risk that Policy A results in the lower cost scenario, or in other words, they are more likely to prefer Policy B because it has guaranteed lower future damages than the high cost outcome from Policy A. Therefore, if we determined that society is risk averse, I would advise Congress to model society's utility function from given monetary costs, then plug in the estimated costs of policies A and B into the utility function, and then recalculate the expected costs (or damages) of each policy using these new expected utility values. After this, they should determine the cost of Policy B, add it to the expected costs (or damages) of Policy B and then determine which policy has the lowest expected costs (or damages) and choose that policy. 
