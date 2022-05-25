@@ -112,7 +112,7 @@ ggplot(data = warming_damages, aes(x = year, y = damages_baseline)) +
 
 ```
 
-Figure 2.0: This figure depicts changes in damages and warming over time without the pulse input.
+**Figure 2.0:** This figure depicts changes in damages and warming over time without the pulse input.
 
 
 ### Plotting Scenario #2
@@ -126,7 +126,7 @@ ggplot(data = warming_damages, aes(x = year, y = damages_pulse)) +
 
 ```
 
-Figure 2.1: This figure depicts damages from warming over time with the inclusion of the pulse input.
+**Figure 2.1:** This figure depicts damages from warming over time with the inclusion of the pulse input.
 
 
 ### Plotting Scenario #3
@@ -140,7 +140,7 @@ ggplot(data = warming_damages, aes(x = year, y = damages_difference)) +
 
 ```
 
-Figure 2.2: This figure depicts the difference in damages arising from the inclusion of the pulse input.
+**Figure 2.2:** This figure depicts the difference in damages arising from the inclusion of the pulse input.
 
 
 ### Plotting Scenario #4
@@ -154,7 +154,7 @@ ggplot(data = warming_damages, aes(x = year, y = damages_difference_co2)) +
 
 ```
 
-Figure 2.3: This figure depicts the difference in damages over time from the pulse/ton of C02, assuming that each ton of the pulse results in an equal amount of damage.
+**Figure 2.3**: This figure depicts the difference in damages over time from the pulse/ton of C02, assuming that each ton of the pulse results in an equal amount of damage.
 
 
 # Question 3
@@ -203,7 +203,7 @@ ggplot(data = scc_df, aes(x = discount_rates, y = scc_calc)) +
 
 ```
 
-Figure 3: The figure above depicts the social cost of carbon ($) per ton of C02 emissions at discount rates from 1-6%. The figure shows that the social cost of carbon decreases, while the discount rate increases. This is an expected pattern because we tend to value money now over money we could recieve later. The figure shows that we place lower value on the social cost of carbon because the effects of carbon emissions will be seen in the future, not immediately.
+**Figure 3:** The figure above depicts the social cost of carbon ($) per ton of C02 emissions at discount rates from 1-6%, up to double the current discount rate. The figure shows that the social cost of carbon decreases, while the discount rate increases. This is an expected pattern because we tend to value money now over money we could recieve later. The figure shows that we place lower value on the social cost of carbon because the effects of carbon emissions will be seen in the future, not immediately.
 
 # Question 4
 
@@ -226,7 +226,7 @@ ggplot(data = scc_df, aes(x = discount_rates, y = scc_calc)) +
 
 ```
 
-Figure 4: By using the Ramsey Rule, I found that the best discount rate to find the SCC would be 2.1%, making the updated SCC equal to approximately $71. This point is depicted on the figure above.
+**Figure 4:** By using the Ramsey Rule, I found that the best discount rate to find the SCC would be 2.1%, making the updated SCC equal to approximately $71. This point is depicted on the figure above.
 
 # Question 5
 
@@ -298,9 +298,9 @@ dif_costs_fun <- function(x){ev_a-(ev_b+x)}
 equal_cost <- uniroot(dif_costs_fun, c(1e15,2.5e15))$root
 ```
 
-Figure 4. The above plot shows the expected value of policies A and B as a function of the initial cost of implementing Policy B (Policy A has no initial costs). 
+**Figure 5:** The above plot shows the expected value of policies A and B as a function of the initial cost of implementing Policy B (Policy A has no initial costs).  <-- alter this figure caption
 
-The two policies have the same total expected value when the initial cost of Policy B is r round(equal_cost,0)` dollars. Therefore, if Policy B costs less than this amount, Congress should undertake Policy B, and if Policy B costs more than this amount, Congress should undertake Policy A (assuming that cost is their only consideration).
+need analysis here
 
 # Question 6 
 
