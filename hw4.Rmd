@@ -203,7 +203,7 @@ ggplot(data = scc_df, aes(x = discount_rates, y = scc_calc)) +
 
 ```
 
-**Figure 3:** The figure above depicts the social cost of carbon ($) per ton of C02 emissions at discount rates from 1-6%, up to double the current discount rate. The figure shows that the social cost of carbon decreases, while the discount rate increases. This is an expected pattern because we tend to value money now over money we could recieve later. The figure shows that we place lower value on the social cost of carbon because the effects of carbon emissions will be seen in the future, not immediately.
+**Figure 3:** The figure above depicts the social cost of carbon ($) per ton of C02 emissions at discount rates from 1-6%, up to double the current discount rate. The figure shows that the social cost of carbon decreases, while the discount rate increases. This is an expected pattern because we tend to value money now over money we could receive later. The figure shows that we place lower value on the social cost of carbon because the effects of carbon emissions will be seen in the future, not immediately.
 
 # Question 4
 
@@ -238,30 +238,40 @@ Now suppose there are two possible climate policies that can be pursued. Policy 
 
 
 ```{r}
-discount_rate_policy <- 0.02
-#assume society is risk neutral
-#Policy A
-warming_damages_policy_a <- warming_damages %>%
-  select(year, warming_baseline, damages_baseline) %>%
-  mutate(damages_2 = damages_funct(1.5*warming_baseline)) %>%
-  mutate(pv_baseline = damages_baseline*(1+discount_rate_policy)^(-(year-baseline_year))) %>%
+
+# Establish 0.02 as the discount rate policy, while assuming society is risk neutral:
+discount_rate_pol <- 0.02
+
+# Policy A
+# Select for the baseline of warming and damages and year, then use mutate to create new columns
+warming_damages_a <- warming_damages %>%
+  select(warming_baseline, damages_baseline, year) %>%
+  mutate(damages_2 = damages_funct(1.5*warming_baseline)) %>% # 1.5X the baseline, per question instructions
+  mutate(pv_baseline = damages_baseline*(1+discount_rate_pol)^(-(year-baseline_year))) %>%
   mutate(pv_2 = damages_2*(1+discount_rate_policy)^(-(year-baseline_year)))
-p_a_1 <- 0.5
-p_a_2 <- 0.5
-ev_a_1 <- sum(warming_damages_policy_a$pv_baseline)
-ev_a_2 <- sum(warming_damages_policy_a$pv_2)
-ev_a <- p_a_1*ev_a_1+p_a_2*ev_a_2 #expected present value of damages up to 2100 policy A in dollars
+
+# Defining and solving for policy values
+policy_a_1 <- 0.5
+policy_a_2 <- 0.5
+expected_val_a_1 <- sum(warming_damages_policy_a$pv_baseline)
+expected_val_a_2 <- sum(warming_damages_policy_a$pv_2)
+expected_val_a <- policy_a_1*expected_val_a_1+policy_a_2*expected_val_a_2 
+#This equation gives us the expected value from policy A 
+
+
 #Policy B
-warming_damages_policy_b <- warming_damages %>%
+warming_damages_b <- warming_damages %>%
   select(year, warming_baseline) 
 for (i in 30:79){
-  warming_damages_policy_b$warming_baseline[i]=1.29
+  warming_damages_b$warming_baseline[i]=1.29
 }
-warming_damages_policy_b <- warming_damages_policy_b %>%
+
+warming_damages_b <- warming_damages_policy_b %>%
   mutate(damages_b = damages_funct(warming_baseline)) %>%
   mutate(pv_b = damages_b*(1+discount_rate_policy)^(-(year-baseline_year)))
 p_b <- 1.0
-ev_b <- sum(warming_damages_policy_b$pv_b)*p_b #expected present value of damages up to 2100 policy B in dollars
+expected_val_b <- sum(warming_damages_policy_b$pv_b)*p_b #expected present value of damages up to 2100 policy B in dollars
+
 ```
 
 ### Policy A: Business as Usual
