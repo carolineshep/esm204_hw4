@@ -245,7 +245,7 @@ policy_a2 <- warming_df$warming_baseline*1.5
 # Policy A is just 1.5X the baseline value, as given by the question instructions
 
 # Policy B
-# Creating a place to store values for policy B an empty numeric vector to hold values
+# Creating a place to store values for policy B
 policy_b <- numeric()
 
 # Create a for loop to populate the policy_b vector
@@ -287,7 +287,7 @@ costs_df_long <- cost_df %>%
   ))
 
 # Expected present value of damages up to 2100 under Policy A-1
-present_val_a1 <- pdv(damages_funct(policy_a1),0.02)
+present_val_a1 <- scc_function(damages_funct(policy_a1),0.02)
 
 # Expected present value of damages up to 2100 under Policy A22
 present_val_a2 <- pdv(damages_funct(policy_a2),0.02)
@@ -298,22 +298,38 @@ present_val_b <- pdv(damages_funct(policy_b),0.02)
 # Expected present value of damages up to 2100 under combined Policy A-1 and A-2
 present_val_a_total <- 0.5*present_val_a1+0.5*present_val_a2
 
-ggplot(data = costs_df_long, aes(x = costs, y = total_cost)) +
-  geom_line(aes(color = policy)) +
-  theme_minimal() +
-  labs(x = "Initial Cost of Policy B ($)", y = "Expected Value of Policy ($)",
-       title = "Expected Value of Policy versus Cost of Implementing Policy B")
-
 # Use uniroot to find the intersection where cost of policy A  = cost of policy B
 difference_costs_funct <- function(x){present_val_a_total - (present_val_b + x)}
 cost_intersection <- uniroot(difference_costs_funct, c(1e15, 2.5e15))$root
+
+cost_x <- seq(1e10,5e15,1e11)
+
+cost_policy_a <- function(x){present_val_a_total}
+cost_policy_b <- function(x){present_val_b + x}
+
+ggplot(data.frame()) +
+  geom_line(aes(x=cost_x, y=cost_x+pv_b,color="Policy B"),alpha=1,size=1) +
+  geom_line(aes(x=cost_x, y=pv_a_agg,color="Policy A"),alpha=1,size=1) +
+  theme_minimal() +
+  scale_x_continuous(name="\nImplementation cost X ($)") +
+  scale_y_continuous(name="Expected damages ($)\n") +
+  scale_color_manual(values = c("#9D8FB8","#F69F99")) +
+theme(legend.title = element_blank(),
+        legend.position = c(0.8, 0.3), 
+        legend.justification = c(1, 1),
+        legend.spacing = unit(0, "cm"),
+        legend.background = element_rect(color = "black", fill = "white", size = 0.2),
+        legend.margin = margin(0.5, 2, 1, 2, "mm"),
+        panel.grid = element_line(color = "lightgray", size = 0.1))
 ```
 
-**Figure 5:** The above plot shows the expected value of policies A and B as a function of the initial cost of implementing Policy B (Policy A has no initial costs).  <-- alter this figure caption
+**Figure 5:** The above plot shows the expected value of policies A and B as a function of the initial cost of implementing Policy B (Policy A has no initial costs).  
 
-need analysis here
+Congress should implement Policy B as it is less expensive to enact and has a lower risk. Society is risk neutral, but Policy B is still a better choice based on initial cost.
+
 
 # Question 6 
 
 Now suppose that society is risk averse. How do you think this would change your advice to Congress? 
 
+In a risk averse society, I would advise congress to adopt Policy B, the more conservative approach. Society will prefer Policy B because it guarantees less damages than Policy A.
