@@ -239,97 +239,79 @@ Now suppose there are two possible climate policies that can be pursued. Policy 
 
 ```{r}
 
-# Policy A
-policy_a1 <-  warming_df$warming_baseline
-policy_a2 <- warming_df$warming_baseline*1.5
-# Policy A is just 1.5X the baseline value, as given by the question instructions
+# Setting discount rate to 0.20, per question instructions
+discount_rate_policy <- 0.02
 
-# Policy B
-# Creating a place to store values for policy B
-policy_b <- numeric()
+#Policy A
+warming_damages_policy_a <- warming_damages %>%
+  select(year, warming_baseline, damages_baseline) %>%
+  mutate(damages_2 = damages_funct(1.5*warming_baseline)) %>%
+  mutate(pv_baseline = damages_baseline*(1+discount_rate_policy)^(-(year-baseline_year))) %>%
+  mutate(pv_2 = damages_2*(1+discount_rate_policy)^(-(year-baseline_year)))
 
-# Create a for loop to populate the policy_b vector
-for (i in 1:nrow(warming_df)) { 
-  if (warming_df$year[i] < 2050) {
-policy_b[i] <- warming_df$warming_baseline[i] }
-  else {
-      policy_b[i] <- 1.29
-    }
+# Finding total cost of policy A
+policy_a <- sum(warming_damages_policy_a$pv_baseline)*0.5 + 
+             sum(warming_damages_policy_a$pv_2)*0.5
+
+#Policy B
+warming_damages_policy_b <- warming_damages %>%
+  select(year, warming_baseline) 
+
+for (i in 30:79){
+  warming_damages_policy_b$warming_baseline[i]=1.29
 }
 
-```
+warming_damages_policy_b <- warming_damages_policy_b %>%
+  mutate(damages_b = damages_funct(warming_baseline)) %>%
+  mutate(pv_b = damages_b*(1+discount_rate_policy)^(-(year-baseline_year)))
 
-### Policy A: Business as Usual
+# Finding costs of policy B
+policy_b <- sum(warming_damages_policy_b$pv_b) 
+
+```
 
 Expected Net Benefit = 𝑝1(𝐵1 − 𝐶1) + 𝑝2(𝐵2 − 𝐶2) + ... + 𝑝𝑛(𝐵𝑛 − 𝐶𝑛)
 
-The expected present value of damages up to the year 2100 based on policy A is ~2.96x10^15 dollars.
+### Policy A: Business as Usual
 
-### Policy B: Take Immediate Action on Climate Change
+The expected present value of damages up to 2100 of policy A is **$`r round(policy_a,0)`**.
 
-The expected present value of damages up to 2100 of policy B is ~7.72x10^14 dollars.
+### Policy B: Taking Immediate Action on Climate Change
+
+The expected present value of damages up to 2100 of policy B is **$ `r round(policy_b,0)`**.
 
 ```{r}
-policy_a_cost <- function(x){ev_a}
-policy_b_cost <- function(x){ev_b+x}
-costs <- c(0,1e15,2e15,3e15,4e15,5e15,6e15,7e15,8e15,9e15,10e15)
-total_cost_a <- c(NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA)
-total_cost_b <- c(NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA)
-cost_df <- data.frame(costs,total_cost_a,total_cost_b)
-cost_df <- cost_df %>%
-  mutate(total_cost_a = policy_a_cost(costs)) %>%
-  mutate(total_cost_b = policy_b_cost(costs))
-costs_df_long <- cost_df %>%
-  pivot_longer(cols = c(total_cost_a,total_cost_b), names_to = 'policy', values_to = 'total_cost') %>%
-  mutate(policy = case_when(
-    policy == "total_cost_a" ~ "Policy A",
-    policy == "total_cost_b" ~ "Policy B"
-  ))
 
-# Expected present value of damages up to 2100 under Policy A-1
-present_val_a1 <- scc_function(damages_funct(policy_a1),0.02)
+# Create functions to find costs of both policies
+policy_a_cost <- function(x){policy_a}
+policy_b_cost <- function(x){policy_b+x}
+costs <- seq(1e10,5e15,1e11) # Creating sequence to use for costs on correct scale
 
-# Expected present value of damages up to 2100 under Policy A22
-present_val_a2 <- pdv(damages_funct(policy_a2),0.02)
+# Create function and use uniroot to find intersection where cost of Policy A = cost of Policy B
+cost_difference_funct <- function(x){policy_a-(policy_b+x)}
+equal_cost <- uniroot(cost_difference_funct, c(1e15,2.5e15))$root
 
-# Expected present value of damages up to 2100 under Policy B
-present_val_b <- pdv(damages_funct(policy_b),0.02)
-
-# Expected present value of damages up to 2100 under combined Policy A-1 and A-2
-present_val_a_total <- 0.5*present_val_a1+0.5*present_val_a2
-
-# Use uniroot to find the intersection where cost of policy A  = cost of policy B
-difference_costs_funct <- function(x){present_val_a_total - (present_val_b + x)}
-cost_intersection <- uniroot(difference_costs_funct, c(1e15, 2.5e15))$root
-
-cost_x <- seq(1e10,5e15,1e11)
-
-cost_policy_a <- function(x){present_val_a_total}
-cost_policy_b <- function(x){present_val_b + x}
-
+# Plot the policy cost and damages together
 ggplot(data.frame()) +
-  geom_line(aes(x=cost_x, y=cost_x+pv_b,color="Policy B"),alpha=1,size=1) +
-  geom_line(aes(x=cost_x, y=pv_a_agg,color="Policy A"),alpha=1,size=1) +
-  theme_minimal() +
-  scale_x_continuous(name="\nImplementation cost X ($)") +
-  scale_y_continuous(name="Expected damages ($)\n") +
-  scale_color_manual(values = c("#9D8FB8","#F69F99")) +
+  geom_line(aes(x = costs, y = costs + policy_b, color = "Policy B"), size = 1) +
+  geom_line(aes(x = costs, y = policy_a, color = "Policy A"), size = 1) +
+  theme_bw() +
+  scale_x_continuous(name ="\nPolicy Implementation Cost ($)") +
+  scale_y_continuous(name ="Expected Damages ($)\n") +
+  scale_color_manual(values = c("coral","darkseagreen")) +
 theme(legend.title = element_blank(),
-        legend.position = c(0.8, 0.3), 
-        legend.justification = c(1, 1),
-        legend.spacing = unit(0, "cm"),
-        legend.background = element_rect(color = "black", fill = "white", size = 0.2),
-        legend.margin = margin(0.5, 2, 1, 2, "mm"),
-        panel.grid = element_line(color = "lightgray", size = 0.1))
+        legend.position = c(0.2, 0.9),
+        legend.background = element_rect(size = 0.1))
+
 ```
 
-**Figure 5:** The above plot shows the expected value of policies A and B as a function of the initial cost of implementing Policy B (Policy A has no initial costs).  
+**Figure 5:** The above plot shows the expected value of policies A and B as a function of the initial cost of implementing Policy B.  
 
-Congress should implement Policy B as it is less expensive to enact and has a lower risk. Society is risk neutral, but Policy B is still a better choice based on initial cost.
+Policy A and Policy B have the same expected damages and implementation cost at approximately $`r equal_cost`. Congress should implement Policy B up until that point, as it is less expensive to enact and has a lower risk. Society is risk neutral, but Policy B is still a better choice as long total costs remain below the intersection point of each policy.
 
 
 # Question 6 
 
 Now suppose that society is risk averse. How do you think this would change your advice to Congress? 
 
-In a risk averse society, I would advise congress to adopt Policy B, the more conservative approach. Society will prefer Policy B because it guarantees less damages than Policy A.
+In a risk averse society, I would advise congress to adopt Policy B, the more conservative approach. Society will prefer Policy B because it guarantees less damages than Policy A. While Policy A has a lower damages and costs overall, there is a chance that it would have much higher costs - a risk that the "risk averse" society would not want. Congress should select the policy that results in the lowest damages/costs. In order to do this, I recommend that the government perform a utility cost analysis of society's preferences to determine the best policy option.
